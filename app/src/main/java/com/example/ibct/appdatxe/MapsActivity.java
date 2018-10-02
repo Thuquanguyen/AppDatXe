@@ -3,10 +3,12 @@ package com.example.ibct.appdatxe;
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.location.Location;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -15,6 +17,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -50,10 +53,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
         googleMap.setMyLocationEnabled(true);
-        // Add a marker in Sydney and move the camera
-            myLocation = googleMap.getMyLocation();
-
-                mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+        try {
+            boolean success = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.map_style));
+            if (!success) {
+                Log.e("", "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e("", "Can't find style. Error: ", e);
+        }
+        myLocation = googleMap.getMyLocation();
+        mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
                     @Override
                     public void onMyLocationChange(Location location) {
                         if (check_location ==0) {
