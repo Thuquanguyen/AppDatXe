@@ -1,7 +1,8 @@
-package com.example.ibct.appdatxe;
+package com.example.ibct.appdatxe.Activity;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.location.Location;
@@ -13,14 +14,19 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.example.ibct.appdatxe.Adapter.CustomMakerOption;
+import com.example.ibct.appdatxe.Contact.Contact;
+import com.example.ibct.appdatxe.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -60,6 +66,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setCompassEnabled(false);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+
         //load kiểu hiển thị của google map
         try {
             boolean success = googleMap.setMapStyle(
@@ -80,13 +88,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         if (check_location ==0) {
                             LatLng myLatLng = new LatLng(location.getLatitude(),
                                     location.getLongitude());
-                            mMap.addMarker(new MarkerOptions().position(myLatLng).title("My Location!"));
-                            CameraPosition myPosition = new CameraPosition.Builder()
-                                    .target(myLatLng).zoom(17).bearing(90).tilt(30).build();
-                            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(myPosition));
+                            MarkerOptions markerOptions = new MarkerOptions();
+                            markerOptions.position(myLatLng)
+                                    .title("MyLocation")
+                                    .icon(BitmapDescriptorFactory.defaultMarker( BitmapDescriptorFactory.HUE_BLUE));
+
+                            Contact contact=new Contact();
+                            contact.setHoVaTen("Nguyễn Văn A");
+                            contact.setSoGhe("4 chỗ");
+                            contact.setNhanHieu("Honda - ");
+                            contact.setBienSo("29H9-666666");
+                            contact.setGiaThanh("8000đ/km");
+                            contact.setSoSanhGia("Trung Bình");
+                            contact.setTrangThai("1");
+                            contact.setSoDienThoai("0969551162");
+
+                            CustomMakerOption customInfoWindow = new CustomMakerOption(MapsActivity.this);
+                            mMap.setInfoWindowAdapter(customInfoWindow);
+
+                            Marker m = mMap.addMarker(markerOptions);
+                            m.setTag(contact);
+                            m.showInfoWindow();
+                            mMap.moveCamera(CameraUpdateFactory.newLatLng(myLatLng));
                         }
                         check_location += 1;
                     }
                 });
+
+
     }
 }
