@@ -12,11 +12,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ibct.appdatxe.Adapter.CustomMakerOption;
 import com.example.ibct.appdatxe.Contact.Contact;
 import com.example.ibct.appdatxe.R;
+import com.example.ibct.appdatxe.data.CarResult;
+import com.example.ibct.appdatxe.network.api.HomeApi;
+import com.example.ibct.appdatxe.network.callback.getCarCallBack;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -29,6 +33,8 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import io.reactivex.disposables.CompositeDisposable;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
@@ -36,17 +42,61 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location myLocation;
     private double check_location =0;
     private View mapView;
+
+    private TextView tvDatXe;
+
+    private CompositeDisposable compositeDisposable;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        compositeDisposable = new CompositeDisposable();
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapView = mapFragment.getView();
         mapFragment.getMapAsync(this);
 
+        initView();
+
     }
+
+    private void initView() {
+        tvDatXe = findViewById(R.id.tv_dat_xe);
+        tvDatXe.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                HomeApi.getCar(compositeDisposable,carCallBack);
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        compositeDisposable.dispose();
+    }
+
+    private static final String TAG = "MapsActivity";
+    private getCarCallBack carCallBack = new getCarCallBack() {
+        @Override
+        public void onSuccess(CarResult carResult) {
+            Log.e(TAG, "onSuccess: "+ carResult.getData().size());
+            // TODO: 19/10/2018 Mảng đối tượng Xe trả về 
+        }
+
+        @Override
+        public void onFailure(String error) {
+            Log.e(TAG, "onFailure: " );
+        }
+
+        @Override
+        public void onComplete() {
+            Log.e(TAG, "onComplete: ");
+        }
+    } ;
 
     @Override
     public void onMapReady(GoogleMap googleMap) {

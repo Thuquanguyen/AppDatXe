@@ -73,6 +73,7 @@
             android:textSize="18sp" />
 
         <TextView
+            android:id="@+id/tv_dat_xe"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
