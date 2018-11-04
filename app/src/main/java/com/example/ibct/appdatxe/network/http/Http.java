@@ -160,7 +160,6 @@ public class Http implements Serializable {
 
     private Service providerService() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-
         /*
          * thiết lập cache cho api
          */

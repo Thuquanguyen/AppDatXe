@@ -9,11 +9,12 @@ public class Contact {
     private String soSanhGia;
     private String trangThai;
     private String soDienThoai;
+    private String hinhAnh;
 
     public Contact() {
     }
 
-    public Contact(String hoVaTen, String nhanHieu, String soGhe, String bienSo, String giaThanh, String soSanhGia, String trangThai, String soDienThoai) {
+    public Contact(String hoVaTen, String nhanHieu, String soGhe, String bienSo, String giaThanh, String soSanhGia, String trangThai, String soDienThoai, String hinhAnh) {
         this.hoVaTen = hoVaTen;
         this.nhanHieu = nhanHieu;
         this.soGhe = soGhe;
@@ -22,6 +23,7 @@ public class Contact {
         this.soSanhGia = soSanhGia;
         this.trangThai = trangThai;
         this.soDienThoai = soDienThoai;
+        this.hinhAnh = hinhAnh;
     }
 
     public String getHoVaTen() {
@@ -86,5 +88,13 @@ public class Contact {
 
     public void setSoDienThoai(String soDienThoai) {
         this.soDienThoai = soDienThoai;
+    }
+
+    public String getHinhAnh() {
+        return hinhAnh;
+    }
+
+    public void setHinhAnh(String hinhAnh) {
+        this.hinhAnh = hinhAnh;
     }
 }

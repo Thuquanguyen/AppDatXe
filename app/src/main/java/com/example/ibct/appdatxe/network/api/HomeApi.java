@@ -29,7 +29,6 @@ public class HomeApi extends BaseApi {
                             apiCallback.onFailure(error);
                         }
                     }
-
                     @Override
                     public void onComplete() {
                         super.onComplete();

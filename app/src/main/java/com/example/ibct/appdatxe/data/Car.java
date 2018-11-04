@@ -31,16 +31,33 @@ public class Car implements Serializable {
     private String phone;
     @SerializedName("kinh_do")
     @Expose
-    private float kinhDo;
+    private double kinhDo;
     @SerializedName("vi_do")
     @Expose
-    private float viDo;
+    private double viDo;
     @SerializedName("trang_thai")
     @Expose
     private boolean trangThai;
     @SerializedName("images")
     @Expose
-    private ArrayList<com.example.ibct.appdatxe.data.Image> arrImage;
+    private String arrImage;
+
+    public Car() {
+    }
+
+    public Car(String id, String tenXe, String tenTaiXe, String bienSo, String giaTien, String hangXe, String phone, double kinhDo, double viDo, boolean trangThai, String arrImage) {
+        this.id = id;
+        this.tenXe = tenXe;
+        this.tenTaiXe = tenTaiXe;
+        this.bienSo = bienSo;
+        this.giaTien = giaTien;
+        this.hangXe = hangXe;
+        this.phone = phone;
+        this.kinhDo = kinhDo;
+        this.viDo = viDo;
+        this.trangThai = trangThai;
+        this.arrImage = arrImage;
+    }
 
     public String getId() {
         return id;
@@ -98,7 +115,7 @@ public class Car implements Serializable {
         this.phone = phone;
     }
 
-    public float getKinhDo() {
+    public double getKinhDo() {
         return kinhDo;
     }
 
@@ -106,7 +123,7 @@ public class Car implements Serializable {
         this.kinhDo = kinhDo;
     }
 
-    public float getViDo() {
+    public double getViDo() {
         return viDo;
     }
 
@@ -122,11 +139,11 @@ public class Car implements Serializable {
         this.trangThai = trangThai;
     }
 
-    public ArrayList<com.example.ibct.appdatxe.data.Image> getArrImage() {
+    public String getArrImage() {
         return arrImage;
     }
 
-    public void setArrImage(ArrayList<com.example.ibct.appdatxe.data.Image> arrImage) {
+    public void setArrImage(String arrImage) {
         this.arrImage = arrImage;
     }
 }

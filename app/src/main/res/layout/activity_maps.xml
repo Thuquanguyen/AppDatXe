@@ -57,7 +57,7 @@
             android:gravity="center"
             android:padding="5dp"
             android:text="Bản đồ"
-            android:textColor="#ffffff"
+            android:textColor="#000000"
             android:textSize="18sp" />
 
         <TextView
@@ -69,7 +69,7 @@
             android:gravity="center"
             android:padding="5dp"
             android:text="Vị trí"
-            android:textColor="#ffffff"
+            android:textColor="#000000"
             android:textSize="18sp" />
 
         <TextView
@@ -82,7 +82,7 @@
             android:gravity="center"
             android:padding="5dp"
             android:text="Đặt Xe"
-            android:textColor="#ffffff"
+            android:textColor="#000000"
             android:textSize="18sp" />
 
         <TextView
@@ -94,7 +94,7 @@
             android:gravity="center"
             android:padding="5dp"
             android:text="Cài đặt"
-            android:textColor="#ffffff"
+            android:textColor="#000000"
             android:textSize="18sp" />
     </LinearLayout>
     <TextView
@@ -108,7 +108,7 @@
         android:gravity="center"
         android:padding="5dp"
         android:text="Chỉ đường"
-        android:textColor="#ffffff"
+        android:textColor="#000000"
         android:textSize="18sp" />
     <TextView
         android:layout_width="match_parent"
