@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="5dp"
         android:text="Hãy nói đặt xe ngay với..."
-        android:textColor="#ffffff"
+        android:textColor="#000000"
         android:textStyle="bold" />
 
     <LinearLayout
@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Nguyễn văn A"
-                android:textColor="#ffffff" />
+                android:textColor="#000000" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -43,14 +43,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Honda - "
-                    android:textColor="#ffffff" />
+                    android:textColor="#000000" />
 
                 <TextView
                     android:id="@+id/txt_soghe"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="4 chỗ"
-                    android:textColor="#ffffff" />
+                    android:textColor="#000000" />
             </LinearLayout>
 
             <TextView
@@ -58,21 +58,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="29H9-666.66"
-                android:textColor="#ffffff" />
+                android:textColor="#000000" />
 
             <TextView
                 android:id="@+id/txt_giathanh"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="8.000đ/1km"
-                android:textColor="#ffffff" />
+                android:textColor="#000000" />
 
             <TextView
                 android:id="@+id/txt_sosanhgia"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Giá Trung bình"
-                android:textColor="#ffffff" />
+                android:textColor="#000000" />
         </LinearLayout>
 
         <TextView
@@ -106,7 +106,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
                 android:text="0969551162"
-                android:textColor="#ffffff" />
+                android:textColor="#000000" />
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/btn_datxe"

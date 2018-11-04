@@ -6,19 +6,8 @@
     android:gravity="center">
 
     <ImageView
+        android:id="@+id/img_marker"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:background="@drawable/maker_car" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="36dp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:gravity="center"
-        android:text="99"
-        android:textColor="#060101"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
 </RelativeLayout>

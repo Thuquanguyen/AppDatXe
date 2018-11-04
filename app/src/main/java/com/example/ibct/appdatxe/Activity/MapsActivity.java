@@ -1,26 +1,34 @@
 package com.example.ibct.appdatxe.Activity;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.speech.RecognizerIntent;
+import android.support.annotation.DrawableRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,6 +57,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.SphericalUtil;
 
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -81,7 +90,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     static Marker mk;
     private CompositeDisposable compositeDisposable;
     private static final int SPEECH_REQUEST_CODE = 0;
-
+    private TextView txt_diemden;
+    private ImageView img_voice;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +100,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         listcar = new ArrayList<>();
         compositeDisposable = new CompositeDisposable();
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -101,7 +110,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void initView() {
         HomeApi.getCar(compositeDisposable, carCallBack);
-      //promptSpeechInput();
+        txt_diemden = (TextView) findViewById(R.id.txt_diemden);
+        img_voice = (ImageView) findViewById(R.id.img_voice);
+        img_voice.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                promptSpeechInput();
+            }
+        });
     }
 
     private void geoLocate() {
@@ -121,7 +137,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             MarkerOptions markerOptions = new MarkerOptions();
             markerOptions.position(myLatLng)
                     .title("Điểm đến")
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.maker_car));
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
             mMap.addMarker(markerOptions);
             String url = null;
             if (polyline != null) polyline.remove();
@@ -246,7 +262,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 MarkerOptions markerOptions = new MarkerOptions();
                 markerOptions.position(myLatLng)
                         .title("MyLocation")
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.maker_car));
+                        .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(R.drawable.maker_car)));
                 Car contact = new Car();
                 contact.setId(listcar.get(i).getId());
                 contact.setTenTaiXe(listcar.get(i).getTenTaiXe());
@@ -391,13 +407,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
-                "a");
+                "Mời bạn lựa chọn\n Bản đồ - Vị trí - Đặt xe - Cài đặt");
         try {
             startActivityForResult(intent, SPEECH_REQUEST_CODE);
         } catch (ActivityNotFoundException a) {
-            Toast.makeText(getApplicationContext(),
-                    "a",
-                    Toast.LENGTH_SHORT).show();
+
         }
     }
 
@@ -412,12 +426,53 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     address = result.get(0);
                     if (!address.isEmpty()) {
-                        geoLocate();
-                        Toast.makeText(this, "Địa điểm : " + result.get(0), Toast.LENGTH_SHORT).show();
+                        txt_diemden.setText(result.get(0));
+                        callCar(result.get(0));
                     }
                 }
                 break;
             }
         }
+    }
+
+    public void callCar(String title) {
+        switch (title) {
+            case "bản đồ":
+                Dialog dialog = new Dialog(this);
+                dialog.setContentView(R.layout.dialog_bando);
+                dialog.show();
+                break;
+            case "vị trí":
+                Toast.makeText(this, "Vi tri", Toast.LENGTH_SHORT).show();
+                break;
+            case "đặt xe":
+                Toast.makeText(this, "dat xe", Toast.LENGTH_SHORT).show();
+                break;
+            case "cài đặt":
+                Toast.makeText(this, "Cai dat", Toast.LENGTH_SHORT).show();
+                break;
+            default:
+                geoLocate();
+                break;
+        }
+    }
+
+    private Bitmap getMarkerBitmapFromView(@DrawableRes int resId) {
+
+        View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_maker, null);
+        ImageView markerImageView = (ImageView) customMarkerView.findViewById(R.id.img_marker);
+        markerImageView.setImageResource(resId);
+        customMarkerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        customMarkerView.layout(0, 0, customMarkerView.getMeasuredWidth(), customMarkerView.getMeasuredHeight());
+        customMarkerView.buildDrawingCache();
+        Bitmap returnedBitmap = Bitmap.createBitmap(customMarkerView.getMeasuredWidth(), customMarkerView.getMeasuredHeight(),
+                Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(returnedBitmap);
+        canvas.drawColor(Color.WHITE, PorterDuff.Mode.SRC_IN);
+        Drawable drawable = customMarkerView.getBackground();
+        if (drawable != null)
+            drawable.draw(canvas);
+        customMarkerView.draw(canvas);
+        return returnedBitmap;
     }
 }

@@ -23,6 +23,7 @@
         android:gravity="center">
 
         <TextView
+            android:id="@+id/txt_diemden"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:maxLines="5"
@@ -31,6 +32,7 @@
             android:textColor="#ffffff" />
 
         <ImageView
+            android:id="@+id/img_voice"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:layout_alignParentRight="true"
