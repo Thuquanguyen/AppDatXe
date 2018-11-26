@@ -1,10 +1,12 @@
 package com.example.ibct.appdatxe.Activity;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -29,6 +31,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,6 +39,7 @@ import android.widget.Toast;
 import com.example.ibct.appdatxe.Adapter.CustomMakerOption;
 import com.example.ibct.appdatxe.Contact.Contact;
 import com.example.ibct.appdatxe.R;
+import com.example.ibct.appdatxe.Until;
 import com.example.ibct.appdatxe.data.Car;
 import com.example.ibct.appdatxe.data.CarResult;
 import com.example.ibct.appdatxe.data.Image;
@@ -85,13 +89,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     static LatLng vtHienTai;
     static String address = "";
     private ArrayList<Car> listcar;
+    private ArrayList<Car> listcarCopy;
     private TextView tvDatXe;
     private CustomMakerOption customCar;
     static Marker mk;
     private CompositeDisposable compositeDisposable;
     private static final int SPEECH_REQUEST_CODE = 0;
-    private TextView txt_diemden;
+    private TextView txt_diemden, txt_danhsachxe;
     private ImageView img_voice;
+    private LinearLayout lil_chon;
+    private Button btn_datxe;
+    private int check = 0;
+    private int soXe = 0;
+    private Until until;
+    private String title = "";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +111,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         listcar = new ArrayList<>();
+        listcarCopy = new ArrayList<>();
         compositeDisposable = new CompositeDisposable();
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -112,12 +125,52 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         HomeApi.getCar(compositeDisposable, carCallBack);
         txt_diemden = (TextView) findViewById(R.id.txt_diemden);
         img_voice = (ImageView) findViewById(R.id.img_voice);
+        lil_chon = (LinearLayout) findViewById(R.id.lil_chon);
+        btn_datxe = (Button) findViewById(R.id.btn_chonxe);
+        txt_danhsachxe = (TextView) findViewById(R.id.txt_danhsachxe);
         img_voice.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 promptSpeechInput();
             }
         });
+        btn_datxe.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MapsActivity.this, ""+btn_datxe.getText().toString(), Toast.LENGTH_SHORT).show();
+                if (btn_datxe.getText().toString().trim().equals("Click để chọn xe")) {
+                    datxe();
+                } else if (btn_datxe.getText().toString().trim().equals("Chọn điểm đến")) {
+                    btn_datxe.setText("Tính tiền");
+                    chondiadiem();
+                } else if(btn_datxe.getText().toString().trim().equals("Tính tiền"))
+                {
+                    mMap.clear();
+                    txt_diemden.setText(title);
+                    btn_datxe.setText("Xác nhận thanh toán");
+                } else if (btn_datxe.getText().toString().trim().equals("Xác nhận thanh toán")) {
+                    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            switch (which) {
+                                case DialogInterface.BUTTON_POSITIVE:
+                                    btn_datxe.setText("Đặt xe");
+                                    txt_danhsachxe.setText("Quanh bạn chưa có xe nào");
+                                    txt_diemden.setText("");
+                                    mMap.clear();
+                                    btn_datxe.setVisibility(View.GONE);
+                                    lil_chon.setVisibility(View.VISIBLE);
+                                    break;
+                            }
+                        }
+                    };
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+                    builder.setMessage("Đặt xe thành công").setPositiveButton("Xong", dialogClickListener).show();
+                }
+            }
+        });
+        until = new Until();
     }
 
     private void geoLocate() {
@@ -148,6 +201,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             downloadTask.execute(url);
             double distance = SphericalUtil.computeDistanceBetween(vtHienTai, myLatLng);
             Toast.makeText(this, "Quãng Đường : " + distance, Toast.LENGTH_SHORT).show();
+            title  = "\tQuãng đường " + ((double) Math.round(distance * 10) / 10) + " " +
+                    "m\n\tGiá thành " + listcarCopy.get(soXe).getGiaTien() + " đ/km\n\tTổng tiền phải trả " + (Double.parseDouble(listcarCopy.get(soXe).getGiaTien()) * ((double) Math.round(distance * 10) / 10)) + "đ ";
         }
     }
 
@@ -183,7 +238,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         public void onComplete() {
-            displayCar();
+            listcarCopy = listcar;
         }
     };
 
@@ -222,7 +277,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
             @Override
             public void onMyLocationChange(Location location) {
-
                 latitude = location.getLatitude();
                 longitude = location.getLongitude();
                 vtHienTai = new LatLng(latitude, longitude);
@@ -254,31 +308,92 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    public void displayCar() {
-        if (listcar.size() > 0) {
-            for (int i = 0; i < listcar.size(); i++) {
-                LatLng myLatLng = new LatLng(listcar.get(i).getKinhDo(),
-                        listcar.get(i).getViDo());
+    public void displayCar(ArrayList<Car> list) {
+        txt_danhsachxe.setText("Quanh bạn hiện tại đang có " + list.size() + " xe");
+        if (list.size() > 0) {
+            for (int i = 0; i < list.size(); i++) {
+                LatLng myLatLng = new LatLng(list.get(i).getKinhDo(),
+                        list.get(i).getViDo());
                 MarkerOptions markerOptions = new MarkerOptions();
                 markerOptions.position(myLatLng)
                         .title("MyLocation")
                         .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(R.drawable.maker_car)));
                 Car contact = new Car();
-                contact.setId(listcar.get(i).getId());
-                contact.setTenTaiXe(listcar.get(i).getTenTaiXe());
-                contact.setHangXe(listcar.get(i).getHangXe());
-                contact.setTenXe(listcar.get(i).getTenXe());
-                contact.setBienSo(listcar.get(i).getBienSo());
-                contact.setGiaTien(listcar.get(i).getGiaTien());
-                contact.setPhone(listcar.get(i).getPhone());
-                contact.setArrImage(listcar.get(i).getArrImage());
+                contact.setId(list.get(i).getId());
+                contact.setTenTaiXe(list.get(i).getTenTaiXe());
+                contact.setHangXe(list.get(i).getHangXe());
+                contact.setTenXe(list.get(i).getTenXe());
+                contact.setBienSo(list.get(i).getBienSo());
+                contact.setGiaTien(list.get(i).getGiaTien());
+                contact.setPhone(list.get(i).getPhone());
+                contact.setArrImage(list.get(i).getArrImage());
                 CustomMakerOption customInfoWindow = new CustomMakerOption(MapsActivity.this);
                 mMap.setInfoWindowAdapter(customInfoWindow);
                 Marker m = mMap.addMarker(markerOptions);
                 m.setTag(contact);
                 m.showInfoWindow();
+
             }
         }
+    }
+
+    public void displayCarDetails(ArrayList<Car> list, int soxe) {
+        mMap.clear();
+        txt_danhsachxe.setText("Quanh bạn hiện tại đang có " + list.size() + " xe");
+        if (soxe < list.size()) {
+            if (soxe > 0) {
+                soXe = soxe - 1;
+                LatLng myLatLng = new LatLng(list.get(soxe - 1).getKinhDo(),
+                        list.get(soxe - 1).getViDo());
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(myLatLng)
+                        .title("MyLocation")
+                        .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(R.drawable.maker_car)));
+                Car contact = new Car();
+                contact.setId(list.get(soxe - 1).getId());
+                contact.setTenTaiXe(list.get(soxe - 1).getTenTaiXe());
+                contact.setHangXe(list.get(soxe - 1).getHangXe());
+                contact.setTenXe(list.get(soxe - 1).getTenXe());
+                contact.setBienSo(list.get(soxe - 1).getBienSo());
+                contact.setGiaTien(list.get(soxe - 1).getGiaTien());
+                contact.setPhone(list.get(soxe - 1).getPhone());
+                contact.setArrImage(list.get(soxe - 1).getArrImage());
+                CustomMakerOption customInfoWindow = new CustomMakerOption(MapsActivity.this);
+                mMap.setInfoWindowAdapter(customInfoWindow);
+                Marker m = mMap.addMarker(markerOptions);
+                m.setTag(contact);
+                m.showInfoWindow();
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(myLatLng));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
+            } else {
+                LatLng myLatLng = new LatLng(list.get(0).getKinhDo(),
+                        list.get(0).getViDo());
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(myLatLng)
+                        .title("MyLocation")
+                        .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(R.drawable.maker_car)));
+                Car contact = new Car();
+                contact.setId(list.get(0).getTenTaiXe());
+                contact.setTenTaiXe(list.get(0).getTenTaiXe());
+                contact.setHangXe(list.get(0).getHangXe());
+                contact.setTenXe(list.get(0).getTenXe());
+                contact.setBienSo(list.get(0).getBienSo());
+                contact.setGiaTien(list.get(0).getGiaTien());
+                contact.setPhone(list.get(0).getPhone());
+                contact.setArrImage(list.get(0).getArrImage());
+                CustomMakerOption customInfoWindow = new CustomMakerOption(MapsActivity.this);
+                mMap.setInfoWindowAdapter(customInfoWindow);
+                Marker m = mMap.addMarker(markerOptions);
+                m.setTag(contact);
+                m.showInfoWindow();
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(myLatLng));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
+            }
+            btn_datxe.setText("Chọn điểm đến");
+        } else {
+            Toast.makeText(this, "Số xe bạn đặt không tồn tại", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     private String getDirectionsUrl(LatLng origin, LatLng dest) {
@@ -402,12 +517,56 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     // Create an intent that can start the Speech Recognizer activity
     private void promptSpeechInput() {
+        check = 1;
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
                 "Mời bạn lựa chọn\n Bản đồ - Vị trí - Đặt xe - Cài đặt");
+        try {
+            startActivityForResult(intent, SPEECH_REQUEST_CODE);
+        } catch (ActivityNotFoundException a) {
+
+        }
+    }
+
+    private void datxe() {
+        check = 2;
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+                "Mời bạn đọc số xe cần đặt\n Vd : 1");
+        try {
+            startActivityForResult(intent, SPEECH_REQUEST_CODE);
+        } catch (ActivityNotFoundException a) {
+
+        }
+    }
+    private void chondiadiem() {
+        check = 2;
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+                "Mời bạn đọc địa chỉ");
+        try {
+            startActivityForResult(intent, SPEECH_REQUEST_CODE);
+        } catch (ActivityNotFoundException a) {
+
+        }
+    }
+    private void caidat() {
+        check = 3;
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+                "Mời bạn đọc số km cần hiển thị xe\n Vd : 1 hoặc 2 ,...");
         try {
             startActivityForResult(intent, SPEECH_REQUEST_CODE);
         } catch (ActivityNotFoundException a) {
@@ -424,10 +583,67 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     ArrayList<String> result = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    address = result.get(0);
-                    if (!address.isEmpty()) {
-                        txt_diemden.setText(result.get(0));
-                        callCar(result.get(0));
+                    if (btn_datxe.getText().toString().trim().equals("Tính tiền")) {
+                        address = result.get(0);
+                        btn_datxe.setText("Tính tiền");
+                        geoLocate();
+                        txt_diemden.setText(address);
+                    }else
+                    {
+                        if (result.get(0).equals("hủy")) {
+                            lil_chon.setVisibility(View.VISIBLE);
+                            btn_datxe.setVisibility(View.GONE);
+                            mMap.clear();
+                            txt_danhsachxe.setText("Quanh bạn hiện tại không có xe nào");
+                        }
+                        if (!result.get(0).isEmpty()) {
+                            txt_diemden.setText(result.get(0));
+                            if (check == 1) {
+                                callCar(result.get(0));
+                            } else if (check == 2) {
+                                if (result.get(0).equals("hài")) {
+                                    displayCarDetails(listcarCopy, 2);
+                                } else {
+                                    try {
+                                        int num = Integer.parseInt(result.get(0));
+                                        displayCarDetails(listcarCopy, num);
+                                    } catch (NumberFormatException e) {
+                                        Toast.makeText(this, result.get(0) + " Không phải số!", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            } else if (check == 3) {
+                                String text = result.get(0);
+                                switch (text) {
+                                    case "1":
+                                        mMap.clear();
+                                        listcarCopy = until.CalculationByDistance(listcar, new LatLng(latitude, longitude), 1);
+                                        displayCar(listcarCopy);
+                                        break;
+                                    case "3":
+                                        mMap.clear();
+                                        listcarCopy = until.CalculationByDistance(listcar, new LatLng(latitude, longitude), 3);
+                                        displayCar(listcarCopy);
+                                        break;
+                                    case "5":
+                                        mMap.clear();
+                                        listcarCopy = until.CalculationByDistance(listcar, new LatLng(latitude, longitude), 5);
+                                        displayCar(listcarCopy);
+                                        break;
+                                    case "7":
+                                        mMap.clear();
+                                        listcarCopy = until.CalculationByDistance(listcar, new LatLng(latitude, longitude), 7);
+                                        displayCar(listcarCopy);
+                                        break;
+                                    case "tất cả":
+                                        mMap.clear();
+                                        listcarCopy = until.CalculationByDistance(listcar, new LatLng(latitude, longitude), 99999);
+                                        displayCar(listcarCopy);
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                        }
                     }
                 }
                 break;
@@ -438,21 +654,63 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void callCar(String title) {
         switch (title) {
             case "bản đồ":
-                Dialog dialog = new Dialog(this);
+                final Dialog dialog = new Dialog(this);
                 dialog.setContentView(R.layout.dialog_bando);
+                Button btn_thongthuo, btn_giaothong, btn_diahinh;
+                btn_diahinh = (Button) dialog.findViewById(R.id.btn_diahinh);
+                btn_giaothong = (Button) dialog.findViewById(R.id.btn_giaothong);
+                btn_thongthuo = (Button) dialog.findViewById(R.id.btn_thongthuong);
+                btn_diahinh.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                        dialog.dismiss();
+                    }
+
+                });
+                btn_giaothong.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                        dialog.dismiss();
+                    }
+                });
+                btn_thongthuo.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                        dialog.dismiss();
+                    }
+                });
                 dialog.show();
                 break;
             case "vị trí":
-                Toast.makeText(this, "Vi tri", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Vị trí của bạn", Toast.LENGTH_SHORT).show();
+                LatLng myLatLng = new LatLng(latitude,
+                        longitude);
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(myLatLng)
+                        .title("Vị trí của bạn")
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                mMap.addMarker(markerOptions);
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(myLatLng));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
                 break;
             case "đặt xe":
-                Toast.makeText(this, "dat xe", Toast.LENGTH_SHORT).show();
+                displayCar(listcarCopy);
+                btn_datxe.setVisibility(View.VISIBLE);
+                lil_chon.setVisibility(View.GONE);
                 break;
             case "cài đặt":
-                Toast.makeText(this, "Cai dat", Toast.LENGTH_SHORT).show();
+                caidat();
+                break;
+            case "đạp xe":
+                displayCar(listcarCopy);
+                btn_datxe.setVisibility(View.VISIBLE);
+                lil_chon.setVisibility(View.GONE);
+                txt_diemden.setText("đặt xe");
                 break;
             default:
-                geoLocate();
                 break;
         }
     }
