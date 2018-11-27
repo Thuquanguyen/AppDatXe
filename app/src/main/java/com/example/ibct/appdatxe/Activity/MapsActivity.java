@@ -37,7 +37,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ibct.appdatxe.Adapter.CustomMakerOption;
-import com.example.ibct.appdatxe.Contact.Contact;
 import com.example.ibct.appdatxe.R;
 import com.example.ibct.appdatxe.Until;
 import com.example.ibct.appdatxe.data.Car;
@@ -78,6 +77,7 @@ import io.reactivex.disposables.CompositeDisposable;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    //Khơi tạo các biến cần thiết
     private GoogleMap mMap;
     private ProgressDialog mProgressDialog;
     private Location myLocation;
@@ -104,16 +104,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Until until;
     private String title = "";
 
-
+//Hàm này chạy đầu tiên khi ứng dụng được mở lên
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        //Khởi tạo mảng các xe
         listcar = new ArrayList<>();
+        //Khởi tạo mảng các xe thứ 2
         listcarCopy = new ArrayList<>();
         compositeDisposable = new CompositeDisposable();
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        // Nhận SupportMapFragment và được thông báo khi bản đồ đã sẵn sàng để sử dụng.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapView = mapFragment.getView();
@@ -122,38 +124,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void initView() {
+        //Gọi hàm getCar trong class HomeApi để lấy danh sách các xe có trong database
         HomeApi.getCar(compositeDisposable, carCallBack);
+        //Ánh xạ các id
         txt_diemden = (TextView) findViewById(R.id.txt_diemden);
         img_voice = (ImageView) findViewById(R.id.img_voice);
         lil_chon = (LinearLayout) findViewById(R.id.lil_chon);
         btn_datxe = (Button) findViewById(R.id.btn_chonxe);
         txt_danhsachxe = (TextView) findViewById(R.id.txt_danhsachxe);
+        //Bắt sự kiện click vào nút Voice
         img_voice.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //Thực hiện lệnh khi click
                 promptSpeechInput();
             }
         });
+        //Bắt sự kiện khi click vào nút đặt xe
         btn_datxe.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MapsActivity.this, ""+btn_datxe.getText().toString(), Toast.LENGTH_SHORT).show();
+                //So sánh text trên button để thwucj hiện các lệnh tương ứng
                 if (btn_datxe.getText().toString().trim().equals("Click để chọn xe")) {
+                    //Đặt xe nếu text trên button = "Click để chọn xe"
                     datxe();
                 } else if (btn_datxe.getText().toString().trim().equals("Chọn điểm đến")) {
                     btn_datxe.setText("Tính tiền");
+                    //Chọn điểm đến khi text trên button = "Chọn điểm đến"
                     chondiadiem();
                 } else if(btn_datxe.getText().toString().trim().equals("Tính tiền"))
                 {
+                    //Tính  tiền khi text tren button = "Tính tiền"
                     mMap.clear();
                     txt_diemden.setText(title);
                     btn_datxe.setText("Xác nhận thanh toán");
                 } else if (btn_datxe.getText().toString().trim().equals("Xác nhận thanh toán")) {
+                    //Khi click vào xác nhận thanh toán
                     DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             switch (which) {
                                 case DialogInterface.BUTTON_POSITIVE:
+                                    // Trả về trạng thái ban đầu của ứng dụng
                                     btn_datxe.setText("Đặt xe");
                                     txt_danhsachxe.setText("Quanh bạn chưa có xe nào");
                                     txt_diemden.setText("");
@@ -164,24 +176,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             }
                         }
                     };
-
+                    // Hiển thị dialog lên activity và đưa ra thông báo
                     AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
                     builder.setMessage("Đặt xe thành công").setPositiveButton("Xong", dialogClickListener).show();
                 }
             }
         });
+        //Khởi tạo lớp Until
         until = new Until();
     }
-
+    // Phương thức lấy điểm đến của người dùng và chỉ đường tới điểm đến đó
     private void geoLocate() {
+        //Tạo biến để lưu tên điểm đến
         String search = address;
+        //Khởi tạo Geocoder lấy thông tin điểm đến
         Geocoder geocoder = new Geocoder(this);
+        //Khởi tạo 1 mảng các đối tượng điểm đến trả về
         List<Address> list = new ArrayList<>();
         try {
+            //Gán thông tin điểm đến vào danh sách điểm đến
             list = geocoder.getFromLocationName(search, 1);
         } catch (IOException e) {
             System.out.println("hihi" + e.getMessage());
         }
+        //Duyệt điểm đến trả về lấy ra phần tử gần nhất đó là điểm đến mà người dùng đã xác định
         if (list.size() > 0) {
             mMap.clear();
             Address address = list.get(0);
@@ -193,14 +211,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
             mMap.addMarker(markerOptions);
             String url = null;
+            //Nếu trước đó người dùng đã yêu cầu chỉ đường đến điểm đến rồi
+            //Thù lúc này biến polyline sẽ kiểm tra và xóa đường đi trước đó
             if (polyline != null) polyline.remove();
             if (vtHienTai != null) {
+                // Tính khoảng các từ vị trí hiện tịa của người dùng tới điểm đến
                 url = getDirectionsUrl(vtHienTai, myLatLng);
             }
+            //Thưc hiện vẽ đường từ vị tría hiện tại đến điểm đến
             DownloadTask downloadTask = new DownloadTask();
             downloadTask.execute(url);
             double distance = SphericalUtil.computeDistanceBetween(vtHienTai, myLatLng);
             Toast.makeText(this, "Quãng Đường : " + distance, Toast.LENGTH_SHORT).show();
+            //Tính ra quãng đường, giá thành và tổng tiền hiển thị lên cho người dùng
             title  = "\tQuãng đường " + ((double) Math.round(distance * 10) / 10) + " " +
                     "m\n\tGiá thành " + listcarCopy.get(soXe).getGiaTien() + " đ/km\n\tTổng tiền phải trả " + (Double.parseDouble(listcarCopy.get(soXe).getGiaTien()) * ((double) Math.round(distance * 10) / 10)) + "đ ";
         }
@@ -216,6 +239,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private getCarCallBack carCallBack = new getCarCallBack() {
         @Override
         public void onSuccess(CarResult carResult) {
+            //Khi API gọi xong trong hàm onSuccess ta lấy ra danh sách thông tin các xe
+            //Lưu vào mảng các xe
             for (int i = 0; i < carResult.getData().size(); i++) {
                 listcar.add(new Car(carResult.getData().get(i).getId(),
                         carResult.getData().get(i).getTenXe(),
@@ -238,10 +263,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         public void onComplete() {
+            //Lưu tiếp vào 1 mảng các xe khác
             listcarCopy = listcar;
         }
     };
 
+    //Phương thức onMapready được chạy khi Google map đã load được lên
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -289,6 +316,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 check_location += 1;
             }
         });
+        //Sự kiện lick vào maker và chỉ đường tới maker đó
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
@@ -308,6 +336,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+    //Phương thức displayCar dùng để hiển thị thông tin các xe quanh người dùng
+    //Hiển thị thông tin lên trên makeroption
     public void displayCar(ArrayList<Car> list) {
         txt_danhsachxe.setText("Quanh bạn hiện tại đang có " + list.size() + " xe");
         if (list.size() > 0) {
@@ -337,6 +367,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    //Hiển thị danh sách các xe đã được lọc theo bán kính
+    //VD người dùng chọn 5km sẽ heienr thị cách xe cách người dùng 5km
     public void displayCarDetails(ArrayList<Car> list, int soxe) {
         mMap.clear();
         txt_danhsachxe.setText("Quanh bạn hiện tại đang có " + list.size() + " xe");
@@ -366,6 +398,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(myLatLng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
             } else {
+                //Người dùng sẽ chọn xe thông qua giọng nói. Nếu có xe tồn tại googole map sẽ tự động clear tới
+                //Địa điểm đó còn không sẽ hiển thị thông báo tới người dùng
                 LatLng myLatLng = new LatLng(list.get(0).getKinhDo(),
                         list.get(0).getViDo());
                 MarkerOptions markerOptions = new MarkerOptions();
@@ -396,6 +430,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    // Tính khoảng cách từ người dùng tới các xe
     private String getDirectionsUrl(LatLng origin, LatLng dest) {
         String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
         String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
@@ -408,17 +443,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     /**
      */
+
     private String downloadUrl(String strUrl) throws IOException {
         String data = "";
         InputStream iStream = null;
         HttpURLConnection urlConnection = null;
         try {
             URL url = new URL(strUrl);
-            // Creating an http connection to communicate with url
+            // Tạo một kết nối http để giao tiếp với url
             urlConnection = (HttpURLConnection) url.openConnection();
-            // Connecting to url
+            // Đang kết nối với url
             urlConnection.connect();
-            // Reading data from url
+            // Đọc dữ liệu từ url
             iStream = urlConnection.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
             StringBuffer sb = new StringBuffer();
@@ -436,15 +472,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return data;
     }
 
-    // Fetches data from url passed
+    // Tìm nạp dữ liệu từ url được chuyển
     private class DownloadTask extends AsyncTask<String, Void, String> {
-        // Downloading data in non-ui thread
+        // Tải xuống dữ liệu trong chuỗi không phải là chủ đề
         @Override
         protected String doInBackground(String... url) {
-            // For storing data from web service
+            //
+            //Để lưu trữ dữ liệu từ dịch vụ web
             String data = "";
             try {
-                // Fetching the data from web service
+                //
+                //Tìm nạp dữ liệu từ dịch vụ web
                 data = downloadUrl(url[0]);
             } catch (Exception e) {
                 Log.d("Background Task", e.toString());
@@ -452,22 +490,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return data;
         }
 
-        // Executes in UI thread, after the execution of
+        //
+        //Thực hiện trong chuỗi giao diện người dùng, sau khi thực thi
         // doInBackground()
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
             ParserTask parserTask = new ParserTask();
-            // Invokes the thread for parsing the JSON data
+            // Gọi luồng để phân tích cú pháp dữ liệu JSON
             parserTask.execute(result);
         }
     }
 
     /**
-     * A class to parse the Google Places in JSON format
+     *
+     Một lớp để phân tích Google Địa điểm ở định dạng JSON
      */
     private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
-        // Parsing the data in non-ui thread
+        // Phân tích dữ liệu trong chuỗi không phải là ui
         @Override
         protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
             JSONObject jObject;
@@ -476,7 +516,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             try {
                 jObject = new JSONObject(jsonData[0]);
                 Directions parser = new Directions();
-                // Starts parsing data
+                // Bắt đầu dữ liệu phân tích cú pháp
                 routes = parser.parse(jObject);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -484,18 +524,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return routes;
         }
 
-        // Executes in UI thread, after the parsing process
+        // Thực hiện trong chuỗi giao diện người dùng, sau quá trình phân tích cú pháp
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> result) {
             ArrayList<LatLng> points = null;
             PolylineOptions lineOptions = null;
-            // Traversing through all the routes
+            //
+            //Đi ngang qua tất cả các tuyến đường
             for (int i = 0; i < result.size(); i++) {
                 points = new ArrayList<LatLng>();
                 lineOptions = new PolylineOptions();
-                // Fetching i-th route
+                //
+                //Đang tìm nạp tuyến đường thứ i
                 List<HashMap<String, String>> path = result.get(i);
-                // Fetching all the points in i-th route
+                // Tìm nạp tất cả các điểm trong tuyến đường thứ i
                 for (int j = 0; j < path.size(); j++) {
                     HashMap<String, String> point = path.get(j);
                     double lat = Double.parseDouble(point.get("lat"));
@@ -503,19 +545,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     LatLng position = new LatLng(lat, lng);
                     points.add(position);
                 }
-                // Adding all the points in the route to LineOptions
+                //
+                //Thêm tất cả các điểm trong tuyến đường vào LineOptions
                 lineOptions.addAll(points);
                 lineOptions.width(10);
                 lineOptions.color(Color.YELLOW);
             }
-            // Drawing polyline in the Google Map for the i-th route
+            // Vẽ đa giác trong Bản đồ Google cho tuyến đường thứ i
             if (lineOptions != null) {
                 polyline = mMap.addPolyline(lineOptions);
             }
         }
     }
 
-    // Create an intent that can start the Speech Recognizer activity
+    //
+    //Tạo mục đích có thể bắt đầu hoạt động Trình nhận dạng giọng nói
     private void promptSpeechInput() {
         check = 1;
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -531,6 +575,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    //Phương thức đặt xe
     private void datxe() {
         check = 2;
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -545,6 +590,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
     }
+    //Phương thức chọn địa điểm - điểm đeens
     private void chondiadiem() {
         check = 2;
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -559,6 +605,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
     }
+    //Phương thức cài đặt bán kính
     private void caidat() {
         check = 3;
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -574,15 +621,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    //Kết quả trả về được lấy ra từ hàm onActivityResult khi người dùng click vào nút Voice để đọc
+    // để thực thi
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
             case SPEECH_REQUEST_CODE: {
                 if (resultCode == RESULT_OK && null != data) {
-
+                    //Lấy ra danh sách các từ gần giống nhhaats
                     ArrayList<String> result = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    //So sánh text mà người dùng đọc với các từ sau để thực hiện các chức năng đặt xe bằng giọng nói
                     if (btn_datxe.getText().toString().trim().equals("Tính tiền")) {
                         address = result.get(0);
                         btn_datxe.setText("Tính tiền");
@@ -651,8 +701,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    // thực hiện các chức năng có trong ứng dụng
     public void callCar(String title) {
         switch (title) {
+            // Hiển thị các dạng bản đồ
             case "bản đồ":
                 final Dialog dialog = new Dialog(this);
                 dialog.setContentView(R.layout.dialog_bando);
@@ -663,6 +715,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 btn_diahinh.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        //Dạng địa hình
                         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
                         dialog.dismiss();
                     }
@@ -671,6 +724,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 btn_giaothong.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        //dạng giao thông
                         mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
                         dialog.dismiss();
                     }
@@ -678,12 +732,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 btn_thongthuo.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        //Dạng thông thường
                         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
                         dialog.dismiss();
                     }
                 });
                 dialog.show();
                 break;
+                //Hiển thị vị trí khi người dùng đọc "vị trí"
+            //Google map tự động clear tới vị trí hiện tại của người dùng
+            //Và thêm maker vào vị trí đó
             case "vị trí":
                 Toast.makeText(this, "Vị trí của bạn", Toast.LENGTH_SHORT).show();
                 LatLng myLatLng = new LatLng(latitude,
@@ -696,14 +754,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(myLatLng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
                 break;
+                //Khi người dùng nói đặt xe sẽ thwujc hiện chức năng đặt xe
             case "đặt xe":
                 displayCar(listcarCopy);
                 btn_datxe.setVisibility(View.VISIBLE);
                 lil_chon.setVisibility(View.GONE);
                 break;
+                //Người dùng chọn cài đặt sẽ hiển thị lên danhy mục bán kính để người dùng lựa chọn cài đặt
             case "cài đặt":
                 caidat();
                 break;
+                //Tương tự tự như đặt xe
             case "đạp xe":
                 displayCar(listcarCopy);
                 btn_datxe.setVisibility(View.VISIBLE);
@@ -714,7 +775,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
         }
     }
-
+// Phương thức vẽ đường đi trong ứng dụng
     private Bitmap getMarkerBitmapFromView(@DrawableRes int resId) {
 
         View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_maker, null);

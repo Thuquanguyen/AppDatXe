@@ -10,8 +10,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+//Class chỉ đường
 public class Directions {
-    /** Receives a JSONObject and returns a list of lists containing latitude and longitude */
+    /**
+     Nhận một JSONObject và trả về một danh sách các danh sách chứa vĩ độ và kinh độ */
     public List<List<HashMap<String,String>>> parse(JSONObject jObject){
 
         List<List<HashMap<String, String>>> routes = new ArrayList<List<HashMap<String,String>>>() ;
@@ -20,25 +22,25 @@ public class Directions {
         JSONArray jSteps = null;
 
         try {
-
+            //Lấy về 1 mảng các tuyến đường được gợi ý
             jRoutes = jObject.getJSONArray("routes");
 
-            /** Traversing all routes */
+            /** Duyệt qua tất cả các tuyến đường */
             for(int i=0;i<jRoutes.length();i++){
                 jLegs = ( (JSONObject)jRoutes.get(i)).getJSONArray("legs");
                 List path = new ArrayList<HashMap<String, String>>();
 
-                /** Traversing all legs */
+                /** Vẽ qua tất cả các tuyến đường giữa điểm đi và điểm đến */
                 for(int j=0;j<jLegs.length();j++){
                     jSteps = ( (JSONObject)jLegs.get(j)).getJSONArray("steps");
 
-                    /** Traversing all steps */
+                    /** Trả về các tuyến đường được chọn lọc */
                     for(int k=0;k<jSteps.length();k++){
                         String polyline = "";
                         polyline = (String)((JSONObject)((JSONObject)jSteps.get(k)).get("polyline")).get("points");
                         List<LatLng> list = decodePoly(polyline);
 
-                        /** Traversing all points */
+                        /** Trả về các điểm trên đường đi */
                         for(int l=0;l<list.size();l++){
                             HashMap<String, String> hm = new HashMap<String, String>();
                             hm.put("lat", Double.toString(((LatLng)list.get(l)).latitude) );
@@ -46,6 +48,7 @@ public class Directions {
                             path.add(hm);
                         }
                     }
+                    // Trả về tuyến đường đi ngắn nhất
                     routes.add(path);
                 }
             }
@@ -61,11 +64,10 @@ public class Directions {
 
 
     /**
-     * Method to decode polyline points
-     * Courtesy : http://jeffreysambells.com/2010/05/27/decoding-polylines-from-google-maps-direction-api-with-java
+     * Phương thức tính khoảng cách giữa các điểm
+     * Tham khảo tại : http://jeffreysambells.com/2010/05/27/decoding-polylines-from-google-maps-direction-api-with-java
      * */
     private List<LatLng> decodePoly(String encoded) {
-
         List<LatLng> poly = new ArrayList<LatLng>();
         int index = 0, len = encoded.length();
         int lat = 0, lng = 0;

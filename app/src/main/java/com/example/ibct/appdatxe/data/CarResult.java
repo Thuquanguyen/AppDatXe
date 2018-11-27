@@ -12,8 +12,9 @@ public class CarResult implements Serializable {
     private boolean error;
     @SerializedName("data")
     @Expose
+    //Khở tạo mảng danh sách các xe
     private List<Car> data = null;
-
+    //Tạo các phương thức get set cho các thuộc tính
     public boolean isError() {
         return error;
     }

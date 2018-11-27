@@ -5,8 +5,10 @@ import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 
 public class ErrorModel implements Serializable {
+    //Khai các các lỗi trả về từ server
     @SerializedName("Message")
     String Message="";
+    //Mã lỗi trả về
     @SerializedName("Code")
     String Code = "";
 
@@ -14,7 +16,7 @@ public class ErrorModel implements Serializable {
         Message = message;
         Code = code;
     }
-
+    //Tạo các phương thức get set cho các thuộc tính
     public String getMessage() {
         return Message;
     }

@@ -231,6 +231,7 @@ public class Http implements Serializable {
         }
         return observable;
     }
+    //Hàm thực thi yêu cầu
     private void execute() {
         Observable<ResponseBody> observable = providerObservable();
         if (retry) observable.retry(numberRetry);

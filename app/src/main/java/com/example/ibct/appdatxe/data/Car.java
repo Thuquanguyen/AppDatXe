@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Car implements Serializable {
+    //Tạo các thuộc tính của xe như id,tên xe, tên tài xê,s biển số, giá tiền, hãng xe, số điện thoại, kinh độ,vĩ độ.
     @SerializedName("id")
     @Expose
     private String id;
@@ -41,7 +42,7 @@ public class Car implements Serializable {
     @SerializedName("images")
     @Expose
     private String arrImage;
-
+// Tạo 2 hàm Constructor có tham số hoặc không có tham số
     public Car() {
     }
 
@@ -58,7 +59,7 @@ public class Car implements Serializable {
         this.trangThai = trangThai;
         this.arrImage = arrImage;
     }
-
+    //Tạo các phương thức get set cho các thuộc tính
     public String getId() {
         return id;
     }

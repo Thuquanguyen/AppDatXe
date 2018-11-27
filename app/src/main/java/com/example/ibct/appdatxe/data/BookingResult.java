@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public class BookingResult implements Serializable {
+    //Tạo phương thức và thuộc tính thể hiệ việc đặt xe thành công
     @SerializedName("error")
     @Expose
     private boolean error;
@@ -16,7 +17,7 @@ public class BookingResult implements Serializable {
     @SerializedName("data")
     @Expose
     private List<BookingInfor> data = null;
-
+    //Tạo các phương thức get set cho các thuộc tính
     public boolean isError() {
         return error;
     }

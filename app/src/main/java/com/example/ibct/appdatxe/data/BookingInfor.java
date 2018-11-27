@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 
 public class BookingInfor implements Serializable {
+    //Tạo các thuộc tính thông tin về xe đặt thành công
     @SerializedName("id")
     @Expose
     private String id;
@@ -27,7 +28,7 @@ public class BookingInfor implements Serializable {
     @SerializedName("car_id")
     @Expose
     private String car_id;
-
+    //Tạo các phương thức get set cho các thuộc tính
     public String getId() {
         return id;
     }
